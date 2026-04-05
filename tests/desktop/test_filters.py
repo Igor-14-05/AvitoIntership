@@ -16,14 +16,22 @@ def test_price_range_filter(page: Page):
 
 
 def test_price_category_filter(page: Page):
+    test_category = "Электроника"
     page.goto("https://cerulean-praline-8e5aa6.netlify.app")
-    select = page.locator('[class*="_filters__select_1iunh_21"]')
-    select.select_option(label = "Электроника")
+    category_select = page.locator('select').filter(has_text="Все категории")
+    category_select.select_option(label=test_category)
+    cards = page.locator('[class*="_card__category_15fhn_259"]')
+    try:
+        cards.first.wait_for(state="attached", timeout=5000)
+    except:
+        print("Нет карточек товаров после фильтрации")
+        no_results = page.get_by_text("Ничего не найдено")
+        assert no_results.is_visible(), "Нет ни карточек, ни сообщения об отсутствии"
+        return
+    categories_texts = cards.all_inner_texts()
+    print(categories_texts)
 
-    price_texts = page.locator('[class*="_card__category"]').all_inner_texts()
-    print(price_texts)
-    # prices = [int(''.join(filter(str.isdigit, text))) for text in price_texts]
-
-    # for price_str in prices:
-    #     assert 1000 <= int(price_str) <= 5000, f"Цена {price_str} вышла за диапазон"
+    assert len(categories_texts) > 0, "Список категорий пуст"
+    for category in categories_texts:
+        assert test_category <= category
 
